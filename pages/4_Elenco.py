@@ -1,16 +1,21 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, firestore
+from google.oauth2 import service_account
+import google.cloud.firestore as gc_firestore
 from utils import registrar_movimentacao
 
 st.set_page_config(page_title="Elenco - LigaFut", layout="wide")
 
-# 🔐 Inicializa Firebase
-if not firebase_admin._apps:
-    cred = credentials.Certificate("credenciais.json")
-    firebase_admin.initialize_app(cred)
-
-db = firestore.client()
+# 🔐 Inicializa Firebase com secrets (compatível com Streamlit Cloud)
+if "firebase" not in st.session_state:
+    try:
+        cred = service_account.Credentials.from_service_account_info(st.secrets["firebase"])
+        db = gc_firestore.Client(credentials=cred, project=st.secrets["firebase"]["project_id"])
+        st.session_state["firebase"] = db
+    except Exception as e:
+        st.error(f"Erro ao conectar com o Firebase: {e}")
+        st.stop()
+else:
+    db = st.session_state["firebase"]
 
 # 🚧 Verifica se o usuário está logado
 if "usuario_id" not in st.session_state or not st.session_state.usuario_id:
@@ -34,8 +39,12 @@ nome_time = st.session_state.nome_time
 st.markdown(f"<h2 style='text-align: center;'>📋 Elenco do {nome_time}</h2><hr>", unsafe_allow_html=True)
 
 # 🔄 Busca elenco do Firebase
-elenco_ref = db.collection("times").document(id_time).collection("elenco").stream()
-elenco = [doc.to_dict() | {"id": doc.id} for doc in elenco_ref]
+try:
+    elenco_ref = db.collection("times").document(id_time).collection("elenco").stream()
+    elenco = [doc.to_dict() | {"id": doc.id} for doc in elenco_ref]
+except Exception as e:
+    st.error(f"Erro ao buscar elenco: {e}")
+    st.stop()
 
 if not elenco:
     st.info("📭 Nenhum jogador cadastrado no elenco.")
