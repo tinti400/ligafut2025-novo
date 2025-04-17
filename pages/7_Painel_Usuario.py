@@ -1,55 +1,62 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, firestore
+from google.oauth2 import service_account
+import google.cloud.firestore as gc_firestore
 
-st.set_page_config(page_title="Painel do Usuário", layout="wide")
+st.set_page_config(page_title="Painel do Usuário - LigaFut", layout="wide")
 
-# Inicializar Firebase
-if not firebase_admin._apps:
-    cred = credentials.Certificate("credenciais.json")
-    firebase_admin.initialize_app(cred)
+# 🔐 Inicializa Firebase via st.secrets (sem credenciais.json)
+if "firebase" not in st.session_state:
+    try:
+        cred = service_account.Credentials.from_service_account_info(st.secrets["firebase"])
+        db = gc_firestore.Client(credentials=cred, project=st.secrets["firebase"]["project_id"])
+        st.session_state["firebase"] = db
+    except Exception as e:
+        st.error(f"Erro ao conectar com o Firebase: {e}")
+        st.stop()
+else:
+    db = st.session_state["firebase"]
 
-db = firestore.client()
+# ✅ Verifica se está logado
+if "usuario_id" not in st.session_state or not st.session_state.usuario_id:
+    st.warning("Você precisa estar logado para acessar esta página.")
+    st.stop()
 
-# Dados do usuário logado
 id_time = st.session_state.id_time
-usuario = st.session_state.usuario
+nome_time = st.session_state.nome_time
 
-# Buscar quantidade de propostas recebidas com status "pendente"
-propostas_ref = db.collection("propostas").where("id_time_destino", "==", id_time).stream()
-qtd_pendentes = sum(1 for doc in propostas_ref if doc.to_dict().get("status") == "pendente")
+# 🔢 Busca saldo do time
+try:
+    time_ref = db.collection("times").document(id_time)
+    dados_time = time_ref.get().to_dict()
+    saldo = dados_time.get("saldo", 0)
+except Exception as e:
+    st.error(f"Erro ao buscar saldo do time: {e}")
+    st.stop()
 
-# Título centralizado
-st.markdown("<h1 style='text-align: center;'>⚙️ Painel do Usuário</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Escolha uma opção abaixo:</p>", unsafe_allow_html=True)
+# 🎨 Painel principal
+st.markdown(f"<h1 style='text-align: center;'>👤 Painel do Técnico</h1><hr>", unsafe_allow_html=True)
 
-# Linha 1
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns([2, 1])
+
 with col1:
-    if st.button("🎽 Elenco"):
-        st.switch_page("pages/4_Elenco.py")
+    st.markdown(f"### 🏷️ Time: **{nome_time}**")
+
 with col2:
-    if st.button("💰 Mercado de Transferências"):
+    st.markdown(f"### 💰 Saldo: **R$ {saldo:,.0f}**".replace(",", "."))
+
+st.markdown("---")
+st.markdown("### 🔎 Ações rápidas")
+
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    if st.button("📋 Ver Elenco"):
+        st.switch_page("pages/4_Elenco.py")
+
+with col_b:
+    if st.button("🏪 Ir para o Mercado"):
         st.switch_page("pages/5_Mercado_Transferencias.py")
-with col3:
-    if st.button("🤝 Negociações"):
-        st.switch_page("pages/11_Negociacoes.py")
 
-# Linha 2
-col4, col5, col6 = st.columns(3)
-with col4:
-    if st.button("📊 Classificação"):
-        st.switch_page("pages/3_Painel_Classificacao.py")
-with col5:
-    label = f"📥 Propostas Recebidas ({qtd_pendentes})" if qtd_pendentes > 0 else "📥 Propostas Recebidas"
-    if st.button(label):
-        st.switch_page("pages/12_Propostas_Recebidas.py")
-with col6:
-    if st.button("📤 Propostas Enviadas"):
-        st.switch_page("pages/13_Propostas_Enviadas.py")
-
-# Linha 3 (centralizado)
-col7 = st.columns(1)[0]
-with col7:
-    if st.button("🏷️ Leilão"):
-        st.switch_page("pages/10_Leilao_Sistema.py")
+with col_c:
+    if st.button("💼 Ver Finanças"):
+        st.switch_page("pages/8_Financas.py")
