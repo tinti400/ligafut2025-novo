@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Atualizar Placar</title>
+</head>
+<body>
+    <h1>Atualizar Placar</h1>
+    <form method="post">
+        <p>{{ jogo.time_casa }} x {{ jogo.time_fora }}</p>
+        <label>Gols {{ jogo.time_casa }}: <input type="number" name="placar_casa" value="{{ jogo.placar_casa or 0 }}"></label><br>
+        <label>Gols {{ jogo.time_fora }}: <input type="number" name="placar_fora" value="{{ jogo.placar_fora or 0 }}"></label><br>
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

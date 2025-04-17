@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Rodadas</title>
+</head>
+<body>
+    <h1>Rodadas</h1>
+    {% if rodadas %}
+        {% for rodada in rodadas %}
+            <h2>Rodada {{ loop.index }}</h2>
+            <ul>
+                {% for jogo in rodada.jogos %}
+                    <li>{{ jogo.mandante }} x {{ jogo.visitante }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>Nenhuma rodada encontrada.</p>
+    {% endif %}
+</body>
+</html>

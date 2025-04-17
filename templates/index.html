@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodadas da Liga Elite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #3e3e3e;
+        }
+        .rodada {
+            margin-bottom: 30px;
+        }
+        .jogo {
+            padding: 10px;
+            font-size: 1.2em;
+        }
+        .jogo span {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Rodadas da Liga Elite</h1>
+
+        {% for rodada in rodadas %}
+        <div class="rodada">
+            <h2>Rodada {{ rodada.numero }}</h2>
+            <div class="jogos">
+                {% for jogo in rodada.jogos %}
+                <div class="jogo">
+                    <span>{{ jogo.mandante }}</span> vs <span>{{ jogo.visitante }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

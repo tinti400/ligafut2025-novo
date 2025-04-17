@@ -1,0 +1,6 @@
+[general]
+email = "seu_email_streamlit@gmail.com"
+
+[server]
+headless = true
+enableCORS = false
