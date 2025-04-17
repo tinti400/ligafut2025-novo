@@ -1,26 +1,28 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
 from google.oauth2 import service_account
 
+# Configuração da página
 st.set_page_config(page_title="Login - LigaFut", page_icon="⚽", layout="centered")
 
-# 🔐 Inicialização segura do Firebase com secrets
+# Inicialização segura do Firebase com st.secrets
 if not firebase_admin._apps:
-    cred = credentials.Certificate(st.secrets["firebase"])
+    cred = service_account.Credentials.from_service_account_info(st.secrets["firebase"])
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-# 🔓 Interface de login
+# Título
 st.markdown("<h1 style='text-align: center; color: white;'>🔐 Login - LigaFut</h1><br>", unsafe_allow_html=True)
 
+# Formulário de login
 with st.form("login_form"):
     usuario_input = st.text_input("Usuário (e-mail)")
     senha_input = st.text_input("Senha", type="password")
     botao_login = st.form_submit_button("Entrar")
 
-# 🔍 Verifica credenciais
+# Validação de login
 if botao_login:
     if usuario_input and senha_input:
         try:
@@ -36,7 +38,7 @@ if botao_login:
                     break
 
             if usuario_encontrado:
-                # Verificação se dados de time estão completos
+                # Verifica se possui dados completos do time
                 if "id_time" not in usuario_encontrado or "nome_time" not in usuario_encontrado:
                     st.error("❌ O cadastro do usuário está incompleto. Faltam dados do time.")
                     st.stop()
