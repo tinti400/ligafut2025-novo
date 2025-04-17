@@ -1,7 +1,5 @@
 import streamlit as st
-from streamlit_extras.switch_page_button import switch_page
 
-# Configurações visuais
 st.set_page_config(page_title="LigaFut", layout="centered")
 
 # Estilo visual
@@ -42,7 +40,7 @@ st.markdown(
 st.markdown("<div class='logo'>🏆 LigaFut</div>", unsafe_allow_html=True)
 st.markdown("<div class='slogan'>Simule qualquer campeonato de futebol com seus amigos</div>", unsafe_allow_html=True)
 
-# Botão para ir para o login
-st.markdown("<div class='botao'>", unsafe_allow_html=True)
-switch_page("1_Login")
-st.markdown("</div>", unsafe_allow_html=True)
+# Botão para login
+if st.button("Entrar"):
+    st.switch_page("pages/1_Login.py")
+
