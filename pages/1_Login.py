@@ -1,28 +1,28 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import firestore
-from google.oauth2 import service_account
+from firebase_admin import credentials, firestore
 
-# Configuração da página
+# Configurações da página
 st.set_page_config(page_title="Login - LigaFut", page_icon="⚽", layout="centered")
 
-# Inicialização segura do Firebase com st.secrets
+# Inicialização do Firebase com credentials CERTIFICATE (obrigatório para firestore.client)
 if not firebase_admin._apps:
-    cred = service_account.Credentials.from_service_account_info(st.secrets["firebase"])
+    cred = credentials.Certificate(st.secrets["firebase"])
     firebase_admin.initialize_app(cred)
 
+# Conexão com Firestore
 db = firestore.client()
 
 # Título
 st.markdown("<h1 style='text-align: center; color: white;'>🔐 Login - LigaFut</h1><br>", unsafe_allow_html=True)
 
-# Formulário de login
+# Formulário
 with st.form("login_form"):
     usuario_input = st.text_input("Usuário (e-mail)")
     senha_input = st.text_input("Senha", type="password")
     botao_login = st.form_submit_button("Entrar")
 
-# Validação de login
+# Lógica de autenticação
 if botao_login:
     if usuario_input and senha_input:
         try:
@@ -38,12 +38,12 @@ if botao_login:
                     break
 
             if usuario_encontrado:
-                # Verifica se possui dados completos do time
+                # Valida se os campos obrigatórios estão preenchidos
                 if "id_time" not in usuario_encontrado or "nome_time" not in usuario_encontrado:
                     st.error("❌ O cadastro do usuário está incompleto. Faltam dados do time.")
                     st.stop()
 
-                # Salva dados na sessão
+                # Armazena dados na sessão
                 st.session_state["usuario_id"] = usuario_doc_id
                 st.session_state["usuario_logado"] = usuario_encontrado["usuario"]
                 st.session_state["id_time"] = usuario_encontrado["id_time"]
