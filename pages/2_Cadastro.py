@@ -1,16 +1,21 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, firestore
+from google.oauth2 import service_account
+import google.cloud.firestore as gc_firestore
 import uuid
 
 st.set_page_config(page_title="Cadastro de Usuário", layout="wide")
 
-# Inicializar Firebase
-if not firebase_admin._apps:
-    cred = credentials.Certificate("credenciais.json")
-    firebase_admin.initialize_app(cred)
-
-db = firestore.client()
+# 🔐 Inicializar Firebase com secrets seguros (compatível com Cloud)
+if "firebase" not in st.session_state:
+    try:
+        cred = service_account.Credentials.from_service_account_info(st.secrets["firebase"])
+        db = gc_firestore.Client(credentials=cred, project=st.secrets["firebase"]["project_id"])
+        st.session_state["firebase"] = db
+    except Exception as e:
+        st.error(f"Erro ao conectar com o Firebase: {e}")
+        st.stop()
+else:
+    db = st.session_state["firebase"]
 
 st.title("📝 Cadastro de Usuário")
 
@@ -22,9 +27,7 @@ if st.button("Cadastrar"):
         usuarios_ref = db.collection("usuarios")
 
         docs = usuarios_ref.where("usuario", "==", usuario).stream()
-        usuario_existente = False
-        for doc in docs:
-            usuario_existente = True
+        usuario_existente = any(True for _ in docs)
 
         if usuario_existente:
             st.warning("Este usuário já está cadastrado.")
@@ -34,6 +37,6 @@ if st.button("Cadastrar"):
                 "usuario": usuario,
                 "senha": senha
             })
-            st.success("Usuário cadastrado com sucesso!")
+            st.success("✅ Usuário cadastrado com sucesso!")
     else:
         st.warning("Preencha todos os campos para se cadastrar.")
